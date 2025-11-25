@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, slangTerms, userProgress, userStats, InsertUserStats } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,70 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getAllSlangTerms() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(slangTerms);
+}
+
+export async function getSlangTermById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(slangTerms).where(eq(slangTerms.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getRandomSlangTerms(count: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(slangTerms).limit(count);
+}
+
+export async function recordUserProgress(
+  userId: number,
+  slangTermId: number,
+  quizType: "pronunciation" | "meaning",
+  isCorrect: boolean
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(userProgress).values({
+    userId,
+    slangTermId,
+    quizType,
+    isCorrect: isCorrect ? 1 : 0,
+  });
+}
+
+export async function getUserStats(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function getOrCreateUserStats(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const existing = await getUserStats(userId);
+  if (existing) return existing;
+  
+  await db.insert(userStats).values({ userId });
+  return getUserStats(userId);
+}
+
+export async function updateUserStats(
+  userId: number,
+  updates: Partial<InsertUserStats>
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(userStats).set(updates).where(eq(userStats.userId, userId));
+}
+
+export async function getUserProgressHistory(userId: number, limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userProgress).where(eq(userProgress.userId, userId)).limit(limit);
+}

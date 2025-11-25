@@ -25,4 +25,42 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const slangTerms = mysqlTable("slang_terms", {
+  id: int("id").autoincrement().primaryKey(),
+  term: varchar("term", { length: 100 }).notNull().unique(),
+  meaning: text("meaning").notNull(),
+  pronunciation: varchar("pronunciation", { length: 255 }).notNull(),
+  example: text("example"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SlangTerm = typeof slangTerms.$inferSelect;
+export type InsertSlangTerm = typeof slangTerms.$inferInsert;
+
+export const userProgress = mysqlTable("user_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  slangTermId: int("slangTermId").notNull().references(() => slangTerms.id, { onDelete: "cascade" }),
+  quizType: mysqlEnum("quizType", ["pronunciation", "meaning"]).notNull(),
+  isCorrect: int("isCorrect").notNull().default(0),
+  attemptedAt: timestamp("attemptedAt").defaultNow().notNull(),
+});
+
+export type UserProgress = typeof userProgress.$inferSelect;
+export type InsertUserProgress = typeof userProgress.$inferInsert;
+
+export const userStats = mysqlTable("user_stats", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  totalQuizzes: int("totalQuizzes").notNull().default(0),
+  correctAnswers: int("correctAnswers").notNull().default(0),
+  pronunciationScore: int("pronunciationScore").notNull().default(0),
+  meaningScore: int("meaningScore").notNull().default(0),
+  streakCount: int("streakCount").notNull().default(0),
+  lastQuizDate: timestamp("lastQuizDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserStats = typeof userStats.$inferSelect;
+export type InsertUserStats = typeof userStats.$inferInsert;

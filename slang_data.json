@@ -1,0 +1,302 @@
+[
+  {
+    "id": 1,
+    "term": "Slay",
+    "meaning": "To do something really well; to succeed or dominate",
+    "pronunciation": "SLAY"
+  },
+  {
+    "id": 2,
+    "term": "Lit",
+    "meaning": "Something that is exciting, awesome, or amazing",
+    "pronunciation": "LIT"
+  },
+  {
+    "id": 3,
+    "term": "Bet",
+    "meaning": "Agreement; yes; okay; sure",
+    "pronunciation": "BET"
+  },
+  {
+    "id": 4,
+    "term": "No Cap",
+    "meaning": "No lie; telling the truth",
+    "pronunciation": "NO CAP"
+  },
+  {
+    "id": 5,
+    "term": "Bussin'",
+    "meaning": "Something is really good or excellent",
+    "pronunciation": "BUS-IN"
+  },
+  {
+    "id": 6,
+    "term": "Drip",
+    "meaning": "Trendy, high-class fashion or style",
+    "pronunciation": "DRIP"
+  },
+  {
+    "id": 7,
+    "term": "Rizz",
+    "meaning": "Charisma; charm; ability to attract others",
+    "pronunciation": "RIZ"
+  },
+  {
+    "id": 8,
+    "term": "Vibe Check",
+    "meaning": "Assessing someone's mood or energy",
+    "pronunciation": "VIBE CHECK"
+  },
+  {
+    "id": 9,
+    "term": "Ghosting",
+    "meaning": "Suddenly ending communication with someone",
+    "pronunciation": "GHOST-ING"
+  },
+  {
+    "id": 10,
+    "term": "Flex",
+    "meaning": "To show off or boast about something",
+    "pronunciation": "FLEX"
+  },
+  {
+    "id": 11,
+    "term": "Salty",
+    "meaning": "Being bitter, upset, or resentful",
+    "pronunciation": "SAWL-TEE"
+  },
+  {
+    "id": 12,
+    "term": "Vibe",
+    "meaning": "A feeling, mood, or atmosphere",
+    "pronunciation": "VIBE"
+  },
+  {
+    "id": 13,
+    "term": "Tea",
+    "meaning": "Gossip or juicy information",
+    "pronunciation": "TEE"
+  },
+  {
+    "id": 14,
+    "term": "Shook",
+    "meaning": "Shocked, surprised, or deeply affected",
+    "pronunciation": "SHOOK"
+  },
+  {
+    "id": 15,
+    "term": "Glow Up",
+    "meaning": "A major improvement in appearance or lifestyle",
+    "pronunciation": "GLOW UP"
+  },
+  {
+    "id": 16,
+    "term": "Stan",
+    "meaning": "To be a big fan of someone; to support strongly",
+    "pronunciation": "STAN"
+  },
+  {
+    "id": 17,
+    "term": "Cringe",
+    "meaning": "Something embarrassing or uncomfortable",
+    "pronunciation": "KRINJ"
+  },
+  {
+    "id": 18,
+    "term": "Fire",
+    "meaning": "Something that is impressive, good, or cool",
+    "pronunciation": "FY-ER"
+  },
+  {
+    "id": 19,
+    "term": "Mood",
+    "meaning": "Relatable; expressing agreement with someone's feeling",
+    "pronunciation": "MOOD"
+  },
+  {
+    "id": 20,
+    "term": "Dope",
+    "meaning": "Cool, awesome, or excellent",
+    "pronunciation": "DOPE"
+  },
+  {
+    "id": 21,
+    "term": "Cheugy",
+    "meaning": "Out-of-date, unfashionable, or trying too hard",
+    "pronunciation": "CHOO-GEE"
+  },
+  {
+    "id": 22,
+    "term": "Fam",
+    "meaning": "Family; close friends",
+    "pronunciation": "FAM"
+  },
+  {
+    "id": 23,
+    "term": "Bae",
+    "meaning": "Boyfriend or girlfriend; term of endearment",
+    "pronunciation": "BAY"
+  },
+  {
+    "id": 24,
+    "term": "Basic",
+    "meaning": "Unoriginal; only interested in mainstream things",
+    "pronunciation": "BAY-SIK"
+  },
+  {
+    "id": 25,
+    "term": "Lowkey",
+    "meaning": "Secretly; somewhat; kind of",
+    "pronunciation": "LOW-KEY"
+  },
+  {
+    "id": 26,
+    "term": "Highkey",
+    "meaning": "Obviously; openly; clearly",
+    "pronunciation": "HY-KEY"
+  },
+  {
+    "id": 27,
+    "term": "Boujee",
+    "meaning": "Fancy, luxurious, or expensive",
+    "pronunciation": "BOO-ZHEE"
+  },
+  {
+    "id": 28,
+    "term": "Periodt",
+    "meaning": "Full stop; end of discussion",
+    "pronunciation": "PEER-EE-ODD"
+  },
+  {
+    "id": 29,
+    "term": "Ate",
+    "meaning": "Did something really well; succeeded",
+    "pronunciation": "ATE"
+  },
+  {
+    "id": 30,
+    "term": "Slaps",
+    "meaning": "A song that is really good",
+    "pronunciation": "SLAPS"
+  },
+  {
+    "id": 31,
+    "term": "Aura",
+    "meaning": "Overall vibe, energy, or personality",
+    "pronunciation": "OR-uh"
+  },
+  {
+    "id": 32,
+    "term": "Baddie",
+    "meaning": "A confident, stylish, and attractive woman",
+    "pronunciation": "BAD-EE"
+  },
+  {
+    "id": 33,
+    "term": "Based",
+    "meaning": "Being yourself; not scared of what people think",
+    "pronunciation": "BAYST"
+  },
+  {
+    "id": 34,
+    "term": "Bestie",
+    "meaning": "Best friend",
+    "pronunciation": "BES-TEE"
+  },
+  {
+    "id": 35,
+    "term": "Bop",
+    "meaning": "An exceptionally good song",
+    "pronunciation": "BOP"
+  },
+  {
+    "id": 36,
+    "term": "Brainrot",
+    "meaning": "Losing touch with reality from consuming too much online content",
+    "pronunciation": "BRAYN-ROT"
+  },
+  {
+    "id": 37,
+    "term": "Bussin",
+    "meaning": "Extremely good, excellent",
+    "pronunciation": "BUS-IN"
+  },
+  {
+    "id": 38,
+    "term": "Caught in 4K",
+    "meaning": "Being caught doing something wrong with evidence",
+    "pronunciation": "KAWT IN FOR-KAY"
+  },
+  {
+    "id": 39,
+    "term": "Clapback",
+    "meaning": "A swift and witty response to an insult",
+    "pronunciation": "KLAP-BAK"
+  },
+  {
+    "id": 40,
+    "term": "Cook",
+    "meaning": "To perform or do well",
+    "pronunciation": "COOK"
+  },
+  {
+    "id": 41,
+    "term": "Cooked",
+    "meaning": "In trouble; done for",
+    "pronunciation": "COOKD"
+  },
+  {
+    "id": 42,
+    "term": "Crash Out",
+    "meaning": "To make a reckless decision after getting upset",
+    "pronunciation": "KRASH OWT"
+  },
+  {
+    "id": 43,
+    "term": "Dank",
+    "meaning": "Excellent, high-quality",
+    "pronunciation": "DANGK"
+  },
+  {
+    "id": 44,
+    "term": "Dead",
+    "meaning": "Humorous to such an extent as to kill you",
+    "pronunciation": "DED"
+  },
+  {
+    "id": 45,
+    "term": "Face Card",
+    "meaning": "An attractive face",
+    "pronunciation": "FAYS KARD"
+  },
+  {
+    "id": 46,
+    "term": "Fanum Tax",
+    "meaning": "Theft of food between friends",
+    "pronunciation": "FAH-NUM TAKS"
+  },
+  {
+    "id": 47,
+    "term": "Finna",
+    "meaning": "Short for fixing to; getting ready to",
+    "pronunciation": "FIN-uh"
+  },
+  {
+    "id": 48,
+    "term": "Fit Check",
+    "meaning": "Highlighting or bringing attention to one's outfit",
+    "pronunciation": "FIT CHEK"
+  },
+  {
+    "id": 49,
+    "term": "For Real",
+    "meaning": "Truthfully; honestly",
+    "pronunciation": "FOR REEL"
+  },
+  {
+    "id": 50,
+    "term": "Gagged",
+    "meaning": "Shocked, amazed, or at a loss for words",
+    "pronunciation": "GAGD"
+  }
+]
