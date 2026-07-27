@@ -1,3 +1,4 @@
+# its vibe coded nothing else bro..
 # Gen-Z Slang Quiz 🎉
 
 A mobile-first web application that teaches Gen-Z slang through interactive pronunciation and meaning quizzes. Master modern slang with customizable quizzes, real-time feedback, and progress tracking.
