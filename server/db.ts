@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, slangTerms, userProgress, userStats, InsertUserStats } from "../drizzle/schema";
+import { InsertUser, users, slangTerms, userProgress, userStats, InsertUserStats, SlangCategory, QUIZ_LENGTHS, QuizLength } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -105,7 +105,32 @@ export async function getSlangTermById(id: number) {
 export async function getRandomSlangTerms(count: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(slangTerms).limit(count);
+  return db.select().from(slangTerms).orderBy(sql`RAND()`).limit(count);
+}
+
+export async function getSlangTermsByCategory(category: SlangCategory, count: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(slangTerms).where(eq(slangTerms.category, category)).orderBy(sql`RAND()`).limit(count);
+}
+
+export async function getSlangTermsByCategories(categories: SlangCategory[], count: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(slangTerms).where(inArray(slangTerms.category, categories)).orderBy(sql`RAND()`).limit(count);
+}
+
+export async function getSlangTermsForQuiz(categories: SlangCategory[] | "all", quizLength: QuizLength) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const count = Math.min(quizLength, 100);
+  
+  if (categories === "all") {
+    return db.select().from(slangTerms).orderBy(sql`RAND()`).limit(count);
+  }
+  
+  return db.select().from(slangTerms).where(inArray(slangTerms.category, categories)).orderBy(sql`RAND()`).limit(count);
 }
 
 export async function recordUserProgress(
@@ -155,4 +180,8 @@ export async function getUserProgressHistory(userId: number, limit: number = 10)
   const db = await getDb();
   if (!db) return [];
   return db.select().from(userProgress).where(eq(userProgress.userId, userId)).limit(limit);
+}
+
+export function isValidQuizLength(length: unknown): length is QuizLength {
+  return QUIZ_LENGTHS.includes(length as QuizLength);
 }

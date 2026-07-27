@@ -15,6 +15,13 @@
       "when": 1764057515689,
       "tag": "0001_tan_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1785173275952,
+      "tag": "0002_shiny_vampiro",
+      "breakpoints": true
     }
   ]
 }

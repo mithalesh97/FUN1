@@ -31,11 +31,34 @@ export const slangTerms = mysqlTable("slang_terms", {
   meaning: text("meaning").notNull(),
   pronunciation: varchar("pronunciation", { length: 255 }).notNull(),
   example: text("example"),
+  category: mysqlEnum("category", [
+    "tiktok",
+    "gaming",
+    "fashion",
+    "emotions",
+    "general"
+  ]).default("general").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type SlangTerm = typeof slangTerms.$inferSelect;
 export type InsertSlangTerm = typeof slangTerms.$inferInsert;
+
+export const SLANG_CATEGORIES = [
+  { id: "tiktok", label: "TikTok & Social Media" },
+  { id: "gaming", label: "Gaming & Streaming" },
+  { id: "fashion", label: "Fashion & Style" },
+  { id: "emotions", label: "Emotions & Reactions" },
+  { id: "general", label: "General/Everyday" },
+] as const;
+
+export type SlangCategory = typeof SLANG_CATEGORIES[number]["id"];
+
+export const QUIZ_LENGTHS = [10, 20, 30, 100] as const;
+export type QuizLength = typeof QUIZ_LENGTHS[number];
+
+export const QUIZ_TYPES = ["pronunciation", "meaning"] as const;
+export type QuizTypeOption = typeof QUIZ_TYPES[number];
 
 export const userProgress = mysqlTable("user_progress", {
   id: int("id").autoincrement().primaryKey(),

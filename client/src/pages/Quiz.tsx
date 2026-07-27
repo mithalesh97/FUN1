@@ -3,34 +3,107 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
-import { Volume2, ArrowRight, Check, X } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Volume2, ArrowRight, Check, X, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 type QuizType = "pronunciation" | "meaning";
-type SlangTerm = { id: number; term: string; meaning: string; pronunciation: string; example: string | null; createdAt: Date };
+type SlangTerm = {
+  id: number;
+  term: string;
+  meaning: string;
+  pronunciation: string;
+  example: string | null;
+  category: string;
+  createdAt: Date;
+};
 
 export default function Quiz() {
   const { user, isAuthenticated } = useAuth();
-  const [quizType, setQuizType] = useState<QuizType | null>(null) as [QuizType | null, any];
+  const [, setLocation] = useLocation();
+  const [quizType, setQuizType] = useState<QuizType | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [quizTerms, setQuizTerms] = useState<SlangTerm[]>([]);
   const [quizComplete, setQuizComplete] = useState(false);
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+  const [quizConfig, setQuizConfig] = useState<{ categories: string[]; quizLength: number } | null>(null);
 
-  const slangQuery = trpc.slang.getRandomTerms.useQuery({ count: 10 });
   const recordAnswerMutation = trpc.quiz.recordAnswer.useMutation();
   const statsQuery = trpc.quiz.getUserStats.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
+  const [quizInput, setQuizInput] = useState<{ categories: "all" | string[]; quizLength: "10" | "20" | "30" | "100" } | null>(null);
+  const getQuizTermsQuery = trpc.slang.getQuizTerms.useQuery(quizInput as any, {
+    enabled: quizInput !== null,
+  });
+
   useEffect(() => {
-    if (slangQuery.data) {
-      setQuizTerms(slangQuery.data);
+    // Load quiz configuration from sessionStorage
+    const config = sessionStorage.getItem("quizConfig");
+    if (config) {
+      try {
+        const parsed = JSON.parse(config);
+        setQuizConfig(parsed);
+        // Fetch quiz terms based on configuration
+        setQuizInput({
+          categories: parsed.categories.length > 0 ? parsed.categories : "all",
+          quizLength: parsed.quizLength.toString() as "10" | "20" | "30" | "100",
+        });
+      } catch (error) {
+        console.error("Error parsing quiz config:", error);
+        setLocation("/quiz-setup");
+      }
+    } else {
+      setLocation("/quiz-setup");
     }
-  }, [slangQuery.data]);
+  }, []);
+
+  useEffect(() => {
+    if (getQuizTermsQuery.data) {
+      setQuizTerms(getQuizTermsQuery.data);
+    }
+  }, [getQuizTermsQuery.data]);
+
+  useEffect(() => {
+    if (quizTerms.length > 0 && currentIndex < quizTerms.length) {
+      generateShuffledOptions();
+    }
+  }, [currentIndex, quizTerms, quizType]);
+
+  const generateShuffledOptions = () => {
+    if (!quizType || currentIndex >= quizTerms.length) return;
+
+    const currentTerm = quizTerms[currentIndex];
+    let options: string[];
+
+    if (quizType === "pronunciation") {
+      // For pronunciation quiz, shuffle pronunciations
+      options = [currentTerm.pronunciation];
+      const otherTerms = quizTerms.filter((_, i) => i !== currentIndex);
+      const randomOthers = otherTerms
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((t) => t.pronunciation);
+      options = [...options, ...randomOthers].sort(() => Math.random() - 0.5);
+    } else {
+      // For meaning quiz, shuffle meanings
+      options = [currentTerm.meaning];
+      const otherTerms = quizTerms.filter((_, i) => i !== currentIndex);
+      const randomOthers = otherTerms
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map((t) => t.meaning);
+      options = [...options, ...randomOthers].sort(() => Math.random() - 0.5);
+    }
+
+    setShuffledOptions(options);
+    setSelectedAnswer(null);
+    setAnswered(false);
+  };
 
   if (!isAuthenticated) {
     return (
@@ -50,12 +123,25 @@ export default function Quiz() {
     );
   }
 
+  if (getQuizTermsQuery.isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">⚙️</div>
+          <p className="text-gray-600">Loading your quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!quizType) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
         <div className="container mx-auto px-4">
-          <Link href="/">
-            <Button variant="ghost" className="mb-8">← Back</Button>
+          <Link href="/quiz-setup">
+            <Button variant="ghost" className="mb-8">
+              ← Back
+            </Button>
           </Link>
 
           <div className="max-w-2xl mx-auto">
@@ -79,9 +165,9 @@ export default function Quiz() {
                   <p className="text-gray-600 mb-4">
                     Listen to the pronunciation of Gen-Z slang and identify the correct meaning.
                   </p>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                    Start Quiz <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <p className="text-sm text-gray-500">
+                    Test your listening and comprehension skills with audio-based questions.
+                  </p>
                 </CardContent>
               </Card>
 
@@ -91,17 +177,17 @@ export default function Quiz() {
               >
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl">📚</span>
+                    <Check className="w-6 h-6 text-blue-600" />
                     Meaning Quiz
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">
-                    Read a slang term and choose the correct meaning from multiple options.
+                    Read the slang term and select the correct meaning from multiple choices.
                   </p>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Start Quiz <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <p className="text-sm text-gray-500">
+                    Test your understanding of what each slang term means.
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -113,61 +199,53 @@ export default function Quiz() {
 
   if (quizComplete) {
     const accuracy = quizTerms.length > 0 ? Math.round((score / quizTerms.length) * 100) : 0;
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-8">
-              <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
-                {accuracy}%
-              </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Quiz Complete!</h1>
-              <p className="text-xl text-gray-600 mb-8">
-                You got {score} out of {quizTerms.length} correct
-              </p>
-            </div>
-
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Performance Breakdown</CardTitle>
+          <div className="max-w-2xl mx-auto">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="text-center">
+                <CardTitle className="text-4xl mb-4">Quiz Complete! 🎉</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Correct Answers</span>
-                    <span className="text-2xl font-bold text-green-600">{score}</span>
+              <CardContent className="text-center space-y-6">
+                <div className="space-y-2">
+                  <p className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+                    {accuracy}%
+                  </p>
+                  <p className="text-xl text-gray-600">
+                    You got {score} out of {quizTerms.length} correct!
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 py-6">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Correct Answers</p>
+                    <p className="text-2xl font-bold text-purple-600">{score}</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Incorrect Answers</span>
-                    <span className="text-2xl font-bold text-red-600">{quizTerms.length - score}</span>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Total Questions</p>
+                    <p className="text-2xl font-bold text-blue-600">{quizTerms.length}</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Accuracy</span>
-                    <span className="text-2xl font-bold text-blue-600">{accuracy}%</span>
-                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <Button
+                    onClick={() => {
+                      setLocation("/quiz-setup");
+                    }}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Take Another Quiz
+                  </Button>
+                  <Link href="/dashboard" className="flex-1">
+                    <Button variant="outline" className="w-full">
+                      View Dashboard
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
-
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={() => {
-                  setQuizType(null);
-                  setCurrentIndex(0);
-                  setScore(0);
-                  setAnswered(false);
-                  setSelectedAnswer(null);
-                  setQuizComplete(false);
-                }}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                Try Again
-              </Button>
-              <Link href="/dashboard">
-                <Button variant="outline">View Dashboard</Button>
-              </Link>
-            </div>
           </div>
         </div>
       </div>
@@ -179,197 +257,190 @@ export default function Quiz() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Loading Quiz...</CardTitle>
+            <CardTitle>No Questions Available</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="animate-pulse text-center">
-              <p className="text-gray-600">Preparing your quiz...</p>
-            </div>
+            <p className="text-gray-600 mb-6">Could not load quiz questions. Please try again.</p>
+            <Link href="/quiz-setup">
+              <Button className="w-full">Back to Setup</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (!quizType) return null;
   const currentTerm = quizTerms[currentIndex];
-  const options = generateOptions(currentTerm, quizTerms, quizType as "pronunciation" | "meaning");
+  const isCorrect =
+    quizType === "pronunciation"
+      ? shuffledOptions[selectedAnswer || 0] === currentTerm.pronunciation
+      : shuffledOptions[selectedAnswer || 0] === currentTerm.meaning;
 
-  async function handleAnswer(optionIndex: number) {
+  const handleAnswer = async (optionIndex: number) => {
     setSelectedAnswer(optionIndex);
     setAnswered(true);
 
-    const isCorrect = quizType === "pronunciation" 
-      ? options[optionIndex] === currentTerm.meaning
-      : options[optionIndex] === currentTerm.term;
+    const correct =
+      quizType === "pronunciation"
+        ? shuffledOptions[optionIndex] === currentTerm.pronunciation
+        : shuffledOptions[optionIndex] === currentTerm.meaning;
 
-    if (isCorrect) {
+    if (correct) {
       setScore(score + 1);
       toast.success("Correct! 🎉");
     } else {
-      toast.error("Incorrect. Try again next time!");
+      toast.error("Incorrect. Try the next one!");
     }
 
+    // Record the answer
     await recordAnswerMutation.mutateAsync({
       slangTermId: currentTerm.id,
-      quizType: quizType as "pronunciation" | "meaning",
-      isCorrect,
+      quizType,
+      isCorrect: correct,
     });
 
+    // Move to next question after a delay
     setTimeout(() => {
-      if (currentIndex < quizTerms.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setAnswered(false);
-        setSelectedAnswer(null);
-      } else {
+      if (currentIndex + 1 >= quizTerms.length) {
         setQuizComplete(true);
+      } else {
+        setCurrentIndex(currentIndex + 1);
       }
     }, 1500);
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
       <div className="container mx-auto px-4">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8">← Back</Button>
-        </Link>
-
         <div className="max-w-2xl mx-auto">
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-semibold text-gray-600">
+              <span className="text-sm font-semibold text-gray-700">
                 Question {currentIndex + 1} of {quizTerms.length}
               </span>
-              <span className="text-sm font-semibold text-gray-600">
-                Score: {score}/{quizTerms.length}
-              </span>
+              <span className="text-sm font-semibold text-purple-600">Score: {score}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / quizTerms.length) * 100}%` }}
-              />
+              ></div>
             </div>
           </div>
 
-          {/* Question Card */}
-          <Card className="mb-8 shadow-lg">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-center">
-                {quizType === "pronunciation" ? "What does this mean?" : "What is this slang term?"}
+              <CardTitle className="text-2xl">
+                {quizType === "meaning" ? currentTerm.term : "What does this mean?"}
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-2">
+                {quizType === "pronunciation" ? "Identify the meaning of the pronunciation" : "Select the correct meaning"}
+              </p>
             </CardHeader>
-            <CardContent>
-              <div className="text-center mb-8">
-                {quizType === "pronunciation" ? (
-                  <div className="space-y-4">
+
+            <CardContent className="space-y-6">
+              {quizType === "pronunciation" && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">Listen to the pronunciation and select the correct meaning:</p>
+                  <div className="flex justify-center">
                     <Button
+                      onClick={() => {
+                        const utterance = new SpeechSynthesisUtterance(currentTerm.pronunciation);
+                        window.speechSynthesis.speak(utterance);
+                      }}
                       variant="outline"
                       size="lg"
-                      className="w-full h-20 text-lg"
-                      onClick={() => {
-                        const utterance = new SpeechSynthesisUtterance(currentTerm.pronunciation || "");
-                        utterance.rate = 0.8;
-                        speechSynthesis.speak(utterance);
-                      }}
+                      className="gap-2"
                     >
-                      <Volume2 className="w-6 h-6 mr-2" />
+                      <Volume2 className="w-5 h-5" />
                       Play Pronunciation
                     </Button>
-                    <p className="text-sm text-gray-500">Phonetic: {currentTerm.pronunciation || "N/A"}</p>
                   </div>
-                ) : (
-                  <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
-                    {currentTerm.term}
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {quizType === "meaning" && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-lg font-semibold text-gray-900">{currentTerm.term}</p>
+                </div>
+              )}
+
+              {/* Example */}
+              {currentTerm.example && (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600 mb-1">Example:</p>
+                  <p className="text-gray-900 italic">"{currentTerm.example}"</p>
+                </div>
+              )}
 
               {/* Answer Options */}
               <div className="space-y-3">
-                {options.map((option, index) => {
-                  const isSelected = selectedAnswer === index;
-                  const isCorrectOption = quizType === "pronunciation" 
-                    ? option === currentTerm.meaning
-                    : option === currentTerm.term;
-
-                  let buttonClass = "w-full p-4 text-left border-2 rounded-lg transition-all";
-                  if (!answered) {
-                    buttonClass += " hover:border-purple-500 hover:bg-purple-50 cursor-pointer";
-                  }
-                  if (answered) {
-                    if (isSelected && isCorrectOption) {
-                      buttonClass += " border-green-500 bg-green-50";
-                    } else if (isSelected && !isCorrectOption) {
-                      buttonClass += " border-red-500 bg-red-50";
-                    } else if (isCorrectOption) {
-                      buttonClass += " border-green-500 bg-green-50";
-                    } else {
-                      buttonClass += " border-gray-200 opacity-50";
-                    }
-                  } else {
-                    buttonClass += " border-gray-200";
-                  }
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => !answered && handleAnswer(index)}
-                      disabled={answered}
-                      className={buttonClass}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900">{option}</span>
-                        {answered && isSelected && isCorrectOption && (
+                {shuffledOptions.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => !answered && handleAnswer(index)}
+                    disabled={answered}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      answered
+                        ? selectedAnswer === index
+                          ? isCorrect
+                            ? "border-green-500 bg-green-50"
+                            : "border-red-500 bg-red-50"
+                          : index === (quizType === "pronunciation" ? shuffledOptions.indexOf(currentTerm.pronunciation) : shuffledOptions.indexOf(currentTerm.meaning))
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 bg-gray-50"
+                        : "border-gray-200 hover:border-purple-400 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-900">{option}</span>
+                      {answered && selectedAnswer === index && (
+                        <div>
+                          {isCorrect ? (
+                            <Check className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <X className="w-5 h-5 text-red-600" />
+                          )}
+                        </div>
+                      )}
+                      {answered &&
+                        index === (quizType === "pronunciation" ? shuffledOptions.indexOf(currentTerm.pronunciation) : shuffledOptions.indexOf(currentTerm.meaning)) &&
+                        selectedAnswer !== index && (
                           <Check className="w-5 h-5 text-green-600" />
                         )}
-                        {answered && isSelected && !isCorrectOption && (
-                          <X className="w-5 h-5 text-red-600" />
-                        )}
-                        {answered && !isSelected && isCorrectOption && (
-                          <Check className="w-5 h-5 text-green-600" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                    </div>
+                  </button>
+                ))}
               </div>
 
               {answered && (
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Example:</span> {currentTerm.example ? currentTerm.example : currentTerm.meaning}
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    {isCorrect ? "Great job! 🎉" : "Here's the correct answer:"}
+                  </p>
+                  <p className="text-gray-900 font-semibold">
+                    {quizType === "pronunciation" ? currentTerm.meaning : currentTerm.pronunciation}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {answered && currentIndex + 1 < quizTerms.length && (
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => {
+                  setCurrentIndex(currentIndex + 1);
+                }}
+                className="gap-2"
+              >
+                Next Question <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
-
-function generateOptions(
-  currentTerm: SlangTerm,
-  allTerms: SlangTerm[],
-  quizType: "pronunciation" | "meaning"
-): string[] {
-  const correctAnswer = quizType === "pronunciation" ? currentTerm.meaning : currentTerm.term;
-  const options = [correctAnswer];
-
-  const otherTerms = allTerms.filter((t) => t.id !== currentTerm.id);
-  while (options.length < 4 && otherTerms.length > 0) {
-    const randomIndex = Math.floor(Math.random() * otherTerms.length);
-    const randomTerm = otherTerms[randomIndex];
-    const randomOption = quizType === "pronunciation" ? randomTerm.meaning : randomTerm.term;
-
-    if (!options.includes(randomOption)) {
-      options.push(randomOption);
-    }
-    otherTerms.splice(randomIndex, 1);
-  }
-
-  return options.sort(() => Math.random() - 0.5);
 }

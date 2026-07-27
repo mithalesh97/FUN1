@@ -1,9 +1,10 @@
-import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { SLANG_CATEGORIES, QUIZ_LENGTHS } from "../drizzle/schema";
+import { COOKIE_NAME } from "@shared/const";
 
 export const appRouter = router({
   system: systemRouter,
@@ -31,6 +32,27 @@ export const appRouter = router({
       .input(z.object({ count: z.number().min(1).max(50) }))
       .query(async ({ input }) => {
         return db.getRandomSlangTerms(input.count);
+      }),
+
+    getCategories: publicProcedure.query(async () => {
+      return SLANG_CATEGORIES.map(cat => ({ id: cat.id, label: cat.label }));
+    }),
+
+    getQuizTerms: publicProcedure
+      .input(
+        z.object({
+          categories: z.union([
+            z.literal("all"),
+            z.array(z.enum(["tiktok", "gaming", "fashion", "emotions", "general"]))
+          ]),
+          quizLength: z.enum(["10", "20", "30", "100"]).transform(v => parseInt(v) as 10 | 20 | 30 | 100),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.getSlangTermsForQuiz(
+          input.categories === "all" ? "all" : input.categories,
+          input.quizLength
+        );
       }),
   }),
 
@@ -114,6 +136,10 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         return db.getUserProgressHistory(ctx.user.id, input.limit || 10);
       }),
+
+    getQuizLengths: publicProcedure.query(async () => {
+      return QUIZ_LENGTHS.map(length => ({ value: length, label: `${length} Questions` }));
+    }),
   }),
 });
 

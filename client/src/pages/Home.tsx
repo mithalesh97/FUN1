@@ -69,7 +69,7 @@ export default function Home() {
           </p>
 
           {isAuthenticated ? (
-            <Link href="/quiz">
+            <Link href="/quiz-setup">
               <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
                 Start Quiz
               </Button>

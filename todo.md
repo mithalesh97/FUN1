@@ -26,3 +26,14 @@
   - Emotions & Reactions (20 terms)
   - General/Everyday Slang (10 terms)
 - Total database now contains 124 unique slang terms (52 original + 72 new)
+
+
+## New Features - Quiz Customization
+- [x] Add category field to slang_terms table
+- [x] Update all slang terms with category assignments
+- [x] Create backend procedures for category filtering
+- [x] Implement quiz length selection (10, 20, 30, 100 questions)
+- [x] Add category selection UI to quiz setup
+- [x] Implement question shuffling for randomization
+- [x] Randomize answer option positions each question
+- [x] Test all customization features

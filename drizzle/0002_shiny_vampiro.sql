@@ -1,0 +1,1 @@
+ALTER TABLE `slang_terms` ADD `category` enum('tiktok','gaming','fashion','emotions','general') DEFAULT 'general' NOT NULL;
